@@ -2,18 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Messages</title>
+    <title>Messages - Chat {{ chat_id }}</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <a href="/" class="back">← Back to list</a>
+        <div class="chat-header">
+            <h2>Chat Messages</h2>
+        </div>
         <div class="messages">
-            {% for sender, date, text in messages %}
-            <div class="message">
-                <div class="sender">{{ sender }}</div>
-                <div class="text">{{ text | safe }}</div>
-                <div class="date">{{ date[:19] }}</div>
+            {% for sender_name, is_self, date, text in messages %}
+            <div class="message-wrapper {% if is_self %}self{% else %}other{% endif %}">
+                <div class="message-bubble">
+                    <div class="sender-name">{{ sender_name }}</div>
+                    <div class="message-text">{{ text | safe }}</div>
+                    <div class="message-date">{{ date[:19] }}</div>
+                </div>
             </div>
             {% else %}
             <div class="empty">No messages found.</div>

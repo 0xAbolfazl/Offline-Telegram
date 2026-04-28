@@ -8,3 +8,5 @@ session.session
 *.log
 !dbs/
 !dbs/*.encrypted
+app.py
+dbs/messages.db.encrypted

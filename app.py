@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from db import init_db, get_all_chats, get_messages
+from db import init_db, get_all_chats, get_messages, get_my_name
 from crypto_utils import ensure_db_decrypted
 import os
 import shutil
@@ -35,7 +35,8 @@ def index():
 @app.route('/chat/<int:chat_id>')
 def view_chat(chat_id):
     messages = get_messages(chat_id, limit=200)
-    return render_template('chat.html', messages=messages, chat_id=chat_id)
+    my_name = get_my_name()
+    return render_template('chat.html', messages=messages, my_name=my_name, chat_id=chat_id)
 
 if __name__ == '__main__':
     prepare_database()
