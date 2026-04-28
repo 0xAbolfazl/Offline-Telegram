@@ -9,14 +9,14 @@ jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4  
+
+      - uses: actions/setup-python@v5   # setup-python v5
         with:
           python-version: '3.10'
-      
+
       - run: pip install -r requirements.txt
-      
+
       - name: Run fetch script
         env:
           API_ID: ${{ secrets.API_ID }}
@@ -24,15 +24,11 @@ jobs:
           PHONE: ${{ secrets.PHONE }}
           SESSION_STRING: ${{ secrets.SESSION_STRING }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python fetch_messages.py
-      
-      - name: Encrypt database
-        env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-        run: python encrypt_db.py
-      
+        run: python fetch_messages.py
+
       - name: Upload encrypted database
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4   #v3 to v4
         with:
           name: telegram-db-encrypted
           path: messages.db.encrypted
