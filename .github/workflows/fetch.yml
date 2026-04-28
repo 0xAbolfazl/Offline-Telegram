@@ -29,7 +29,7 @@ jobs:
           API_HASH: ${{ secrets.API_HASH }}
           PHONE: ${{ secrets.PHONE }}
           SESSION_STRING: ${{ secrets.SESSION_STRING }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
+          CHAT_IDS: ${{ secrets.CHAT_IDS }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
         run: python fetch_messages.py
 
