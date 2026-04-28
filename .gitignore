@@ -1,12 +1,17 @@
-messages.db
-messages.db.encrypted
+# Python cache
 *.pyc
 __pycache__/
+
+# Environment and secrets
 .env
 session.session
+
+# OS files
 .DS_Store
+
+# Logs
 *.log
+
+# But keep the dbs folder and its encrypted files
 !dbs/
 !dbs/*.encrypted
-app.py
-dbs/messages.db.encrypted

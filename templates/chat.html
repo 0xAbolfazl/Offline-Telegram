@@ -2,26 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Messages - Chat {{ chat_id }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ chat_title }} - Telegram Archive</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back">← Back to list</a>
-        <div class="chat-header">
-            <h2>Chat Messages</h2>
+        <div class="chat-navbar">
+            <a href="/" class="back-button">← Back</a>
+            <div class="chat-title-header">{{ chat_title }}</div>
+            <div class="placeholder"></div> <!-- for flex spacing -->
         </div>
-        <div class="messages">
+        <div class="messages-area">
             {% for sender_name, is_self, date, text in messages %}
-            <div class="message-wrapper {% if is_self %}self{% else %}other{% endif %}">
+            <div class="message-row {% if is_self %}own{% else %}other{% endif %}">
                 <div class="message-bubble">
                     <div class="sender-name">{{ sender_name }}</div>
                     <div class="message-text">{{ text | safe }}</div>
-                    <div class="message-date">{{ date[:19] }}</div>
+                    <div class="message-time">{{ date[:19] }}</div>
                 </div>
             </div>
             {% else %}
-            <div class="empty">No messages found.</div>
+            <div class="empty-state">No messages found.</div>
             {% endfor %}
         </div>
     </div>

@@ -2,17 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Telegram Archive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Archive - Chats</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Saved Chats</h1>
-        <ul class="chat-list">
-            {% for chat_id, title in chats %}
-            <li><a href="/chat/{{ chat_id }}">{{ title }}</a></li>
-            {% endfor %}
-        </ul>
+    <div class="main-container">
+        <div class="chats-card">
+            <div class="header">
+                <h1>📁 Saved Chats</h1>
+                <p>Select a chat to view messages</p>
+            </div>
+            <ul class="chat-list">
+                {% for chat_id, title in chats %}
+                <li>
+                    <a href="/chat/{{ chat_id }}">
+                        <div class="chat-item">
+                            <span class="chat-icon">💬</span>
+                            <span class="chat-title">{{ title }}</span>
+                            <span class="arrow">→</span>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
 </body>
 </html>

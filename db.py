@@ -25,6 +25,16 @@ def init_db():
                 UNIQUE(chat_id, message_id)
             )
         ''')
+        
+        cur = conn.execute("PRAGMA table_info(messages)")
+        columns = [col[1] for col in cur.fetchall()]
+        if 'is_self' not in columns:
+            conn.execute("ALTER TABLE messages ADD COLUMN is_self INTEGER DEFAULT 0")
+            print("Added is_self column")
+        if 'sender_id' not in columns:
+            conn.execute("ALTER TABLE messages ADD COLUMN sender_id INTEGER DEFAULT 0")
+            print("Added sender_id column")
+        
         conn.commit()
 
 def save_chat(chat_id, title):
@@ -68,3 +78,9 @@ def get_my_name():
         ''')
         result = cur.fetchone()
         return result[0] if result else "Me"
+
+def get_chat_title(chat_id):
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.execute('SELECT title FROM chats WHERE chat_id = ?', (chat_id,))
+        result = cur.fetchone()
+        return result[0] if result else str(chat_id)

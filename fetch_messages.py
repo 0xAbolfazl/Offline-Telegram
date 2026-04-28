@@ -17,10 +17,8 @@ ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY')
 
 def parse_chat_id(chat_input):
     chat_input = str(chat_input).strip()
-    
     if chat_input.startswith('@') or not chat_input.lstrip('-').isdigit():
-        username = chat_input.lstrip('@')
-        return username
+        return chat_input.lstrip('@')
     else:
         return int(chat_input)
 
@@ -35,11 +33,11 @@ async def main():
     
     await client.start(phone=PHONE)
     
-    # Get my user ID
+    # Get my user ID and name
     me = await client.get_me()
     my_id = me.id
-    my_name = me.first_name or me.username or "Me"
-    print(f"Logged in as: {my_name} (ID: {my_id})")
+    my_username = me.username
+    print(f"Logged in as: {me.first_name} (ID: {my_id})")
     
     chat_identifier = parse_chat_id(CHAT_ID_INPUT)
     
@@ -57,19 +55,18 @@ async def main():
         
         numeric_chat_id = entity.id
         save_chat(numeric_chat_id, chat_title)
-        
-        print(f"Connected to: {chat_title}")
+        print(f"Connected to chat: {chat_title}")
         
         messages = await client.get_messages(entity, limit=100)
-        
         count = 0
+        
         for msg in messages:
             if msg.text and not isinstance(msg, MessageService):
                 sender = await msg.get_sender()
                 if sender:
                     sender_name = sender.first_name or sender.username or 'System'
                     sender_id = sender.id
-                    is_self = (sender_id == my_id)
+                    is_self = (sender_id == my_id)   # Crucial line
                 else:
                     sender_name = 'Unknown'
                     sender_id = 0
