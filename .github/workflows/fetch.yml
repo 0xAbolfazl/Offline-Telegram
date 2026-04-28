@@ -2,8 +2,8 @@ name: Fetch Telegram Messages
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */12 * * *'
+  # schedule:                     # در صورت نیاز، کامنت زیر را فعال کنید
+  #   - cron: '0 */12 * * *'
 
 jobs:
   fetch:
@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
@@ -32,11 +33,30 @@ jobs:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
         run: python fetch_messages.py
 
-      - name: Commit encrypted database
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Update encrypted database [skip actions]"
-          commit_user_name: "github-actions[bot]"
-          commit_user_email: "github-actions[bot]@users.noreply.github.com"
-          file_pattern: "dbs/messages.db.encrypted"
-          skip_fetch: true
+      - name: Commit and push encrypted database to main branch
+        run: |
+          # Create dbs folder if not exists
+          mkdir -p dbs
+
+          # Move encrypted file to dbs folder
+          if [ -f messages.db.encrypted ]; then
+            mv messages.db.encrypted dbs/
+            echo "Moved messages.db.encrypted to dbs/"
+          else
+            echo "ERROR: messages.db.encrypted not found!"
+            exit 1
+          fi
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add and commit
+          git add dbs/messages.db.encrypted
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update encrypted database - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            git push origin main
+            echo "Successfully pushed encrypted database to main branch"
+          fi
