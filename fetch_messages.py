@@ -12,8 +12,12 @@ API_ID = int(os.getenv('API_ID'))
 API_HASH = os.getenv('API_HASH')
 PHONE = os.getenv('PHONE')
 SESSION_STRING = os.getenv('SESSION_STRING')
-CHAT_ID_INPUT = os.getenv('CHAT_ID')
+CHAT_IDS_INPUT = os.getenv('CHAT_IDS')   
 ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY')
+
+if not CHAT_IDS_INPUT:
+    print("ERROR: CHAT_IDS is not set. Please add CHAT_IDS secret in GitHub Actions.")
+    exit(1)
 
 def parse_chat_id(chat_input):
     chat_input = str(chat_input).strip()
@@ -47,58 +51,64 @@ async def main():
     my_id = me.id
     print(f"Logged in as: {me.first_name or me.username or 'Me'} (ID: {my_id})")
     
-    chat_identifier = parse_chat_id(CHAT_ID_INPUT)
-    print(f"Looking for chat: {chat_identifier}")
+    chat_ids_list = [cid.strip() for cid in CHAT_IDS_INPUT.split(',') if cid.strip()]
+    print(f"Processing {len(chat_ids_list)} chat(s): {chat_ids_list}")
     
-    try:
-        entity = await client.get_entity(chat_identifier)
+    for idx, chat_identifier_str in enumerate(chat_ids_list, 1):
+        print(f"\n--- Chat {idx}/{len(chat_ids_list)}: {chat_identifier_str} ---")
+        chat_identifier = parse_chat_id(chat_identifier_str)
         
-        # Get chat title
-        if hasattr(entity, 'title'):
-            chat_title = entity.title
-        elif hasattr(entity, 'first_name'):
-            chat_title = f"{entity.first_name} {entity.last_name or ''}".strip()
-        elif hasattr(entity, 'username'):
-            chat_title = f"@{entity.username}"
-        else:
-            chat_title = str(chat_identifier)
-        
-        numeric_chat_id = entity.id
-        save_chat(numeric_chat_id, chat_title)
-        print(f"Connected to chat: {chat_title} (ID: {numeric_chat_id})")
-        
-        messages = await client.get_messages(entity, limit=100)
-        print(f"Fetched {len(messages)} messages total")
-        
-        count = 0
-        for msg in messages:
-            if msg.text and not isinstance(msg, MessageService):
-                sender = await msg.get_sender()
-                sender_name = get_sender_name(sender)
-                sender_id = sender.id if sender else 0
-                is_self = (sender_id == my_id) if sender_id else False
-                
-                save_message(
-                    chat_id=numeric_chat_id,
-                    msg_id=msg.id,
-                    sender_name=sender_name,
-                    sender_id=sender_id,
-                    is_self=1 if is_self else 0,
-                    date=str(msg.date),
-                    text=msg.text
-                )
-                count += 1
-        
-        print(f"Saved {count} text messages")
-        
-        if ENCRYPTION_KEY and os.path.exists('messages.db'):
-            encrypt_file(ENCRYPTION_KEY, 'messages.db', 'messages.db.encrypted')
-            print("Database encrypted")
-            os.remove('messages.db')
+        try:
+            entity = await client.get_entity(chat_identifier)
             
-    except Exception as e:
-        print(f"ERROR: {type(e).__name__}: {e}")
-        raise
+            if hasattr(entity, 'title') and entity.title:
+                chat_title = entity.title
+            elif hasattr(entity, 'first_name') and entity.first_name:
+                chat_title = entity.first_name
+                if hasattr(entity, 'last_name') and entity.last_name:
+                    chat_title += f" {entity.last_name}"
+            elif hasattr(entity, 'username') and entity.username:
+                chat_title = f"@{entity.username}"
+            else:
+                chat_title = f"Chat_{entity.id}"
+            
+            if not chat_title or chat_title == "None":
+                chat_title = f"Chat_{entity.id}"
+            
+            numeric_chat_id = entity.id
+            save_chat(numeric_chat_id, chat_title)
+            print(f"Connected: {chat_title} (ID: {numeric_chat_id})")
+            
+            messages = await client.get_messages(entity, limit=100)
+            print(f"Fetched {len(messages)} messages")
+            
+            count = 0
+            for msg in messages:
+                if msg.text and not isinstance(msg, MessageService):
+                    sender = await msg.get_sender()
+                    sender_name = get_sender_name(sender)
+                    sender_id = sender.id if sender else 0
+                    is_self = (sender_id == my_id) if sender_id else False
+                    
+                    save_message(
+                        chat_id=numeric_chat_id,
+                        msg_id=msg.id,
+                        sender_name=sender_name,
+                        sender_id=sender_id,
+                        is_self=1 if is_self else 0,
+                        date=str(msg.date),
+                        text=msg.text
+                    )
+                    count += 1
+            print(f"Saved {count} text messages")
+            
+        except Exception as e:
+            print(f"ERROR for {chat_identifier_str}: {type(e).__name__}: {e}")
+    
+    if ENCRYPTION_KEY and os.path.exists('messages.db'):
+        encrypt_file(ENCRYPTION_KEY, 'messages.db', 'messages.db.encrypted')
+        print("\nDatabase encrypted")
+        os.remove('messages.db')
 
 if __name__ == '__main__':
     asyncio.run(main())
