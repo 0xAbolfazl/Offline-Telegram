@@ -1,1 +1,8 @@
+messages.db
+messages.db.encrypted
+*.pyc
+__pycache__/
 .env
+session.session
+.DS_Store
+*.log
