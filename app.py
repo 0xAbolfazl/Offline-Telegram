@@ -2,6 +2,7 @@ from flask import Flask, render_template
 from db import init_db, get_all_chats, get_messages
 from crypto_utils import ensure_db_decrypted
 import os
+import shutil
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,15 +11,21 @@ app = Flask(__name__)
 
 ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY')
 
-if ENCRYPTION_KEY:
-    if ensure_db_decrypted(ENCRYPTION_KEY):
-        init_db()
-        print("Database ready")
+def prepare_database():
+    """Copy encrypted db from dbs folder if exists"""
+    if os.path.exists('dbs/messages.db.encrypted'):
+        shutil.copy('dbs/messages.db.encrypted', 'messages.db.encrypted')
+        print("Copied encrypted database from dbs/ folder")
+    
+    if ENCRYPTION_KEY:
+        if ensure_db_decrypted(ENCRYPTION_KEY):
+            init_db()
+            print("Database ready")
+            return True
     else:
-        print("Warning: Could not load database")
-else:
-    print("Warning: ENCRYPTION_KEY not set, trying to use existing messages.db")
-    init_db()
+        print("Warning: ENCRYPTION_KEY not set")
+    
+    return False
 
 @app.route('/')
 def index():
@@ -31,4 +38,5 @@ def view_chat(chat_id):
     return render_template('chat.html', messages=messages, chat_id=chat_id)
 
 if __name__ == '__main__':
+    prepare_database()
     app.run(debug=True, port=5000)

@@ -8,6 +8,8 @@ on:
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       
@@ -27,10 +29,12 @@ jobs:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
         run: python fetch_messages.py
       
-      - name: Upload encrypted database
-        uses: actions/upload-artifact@v4
-        with:
-          name: telegram-db-encrypted
-          path: messages.db.encrypted
-          retention-days: 30
-          overwrite: true
+      - name: Commit and push encrypted database to repo
+        run: |
+          mkdir -p dbs
+          mv messages.db.encrypted dbs/
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add dbs/messages.db.encrypted
+          git commit -m "Update encrypted database - $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          git push

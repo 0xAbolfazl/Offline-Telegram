@@ -6,3 +6,5 @@ __pycache__/
 session.session
 .DS_Store
 *.log
+!dbs/
+!dbs/*.encrypted
